@@ -3,7 +3,9 @@
 
 import * as React from 'react'
 
-const Globe = React.lazy(() => import('../globe'))
+const loadGlobeModule = () => import('../globe')
+
+let Globe = React.lazy(loadGlobeModule)
 
 function App() {
   const [showGlobe, setShowGlobe] = React.useState(false)
@@ -19,7 +21,11 @@ function App() {
         padding: '2rem',
       }}
     >
-      <label style={{marginBottom: '1rem'}}>
+      <label
+        style={{marginBottom: '1rem'}}
+        onFocus={loadGlobeModule}
+        onMouseEnter={loadGlobeModule}
+      >
         <input
           type="checkbox"
           checked={showGlobe}
