@@ -48,13 +48,6 @@ function AppProvider({children}) {
   )
 }
 
-function DogProvider({children}) {
-  const [dogName, setDogName] = React.useState('')
-  const value = React.useMemo(() => [dogName, setDogName], [dogName])
-
-  return <DogContext.Provider value={value}>{children}</DogContext.Provider>
-}
-
 function useAppState() {
   const context = React.useContext(AppStateContext)
   if (!context) {
@@ -63,18 +56,25 @@ function useAppState() {
   return context
 }
 
-function useDog() {
-  const context = React.useContext(DogContext)
-  if (!context) {
-    throw new Error('useDog must be used within the DogProvider')
-  }
-  return context
-}
-
 function useAppDispatch() {
   const context = React.useContext(AppDispatchContext)
   if (!context) {
     throw new Error('useAppDispatch must be used within the AppProvider')
+  }
+  return context
+}
+
+function DogProvider({children}) {
+  const [dogName, setDogName] = React.useState('')
+  const value = React.useMemo(() => [dogName, setDogName], [dogName])
+
+  return <DogContext.Provider value={value}>{children}</DogContext.Provider>
+}
+
+function useDog() {
+  const context = React.useContext(DogContext)
+  if (!context) {
+    throw new Error('useDog must be used within the DogProvider')
   }
   return context
 }
@@ -101,11 +101,19 @@ function Cell({row, column}) {
   const state = useAppState()
   const cell = state.grid[row][column]
   const dispatch = useAppDispatch()
-  const handleClick = () => dispatch({type: 'UPDATE_GRID_CELL', row, column})
+  const handleClick = React.useCallback(
+    () => dispatch({type: 'UPDATE_GRID_CELL', row, column}),
+    [column, dispatch, row],
+  )
+  return <CellImpl cell={cell} onClick={handleClick} />
+}
+Cell = React.memo(Cell)
+
+function CellImpl({cell, onClick}) {
   return (
     <button
       className="cell"
-      onClick={handleClick}
+      onClick={onClick}
       style={{
         color: cell > 50 ? 'white' : 'black',
         backgroundColor: `rgba(0, 0, 0, ${cell / 100})`,
@@ -115,7 +123,7 @@ function Cell({row, column}) {
     </button>
   )
 }
-Cell = React.memo(Cell)
+CellImpl = React.memo(CellImpl)
 
 function DogNameInput() {
   const [dogName, setDogName] = useDog()
