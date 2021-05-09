@@ -97,23 +97,29 @@ function Grid() {
 }
 Grid = React.memo(Grid)
 
-function Cell({row, column}) {
-  const state = useAppState()
-  const cell = state.grid[row][column]
+function withStateSlice(WrappedComponent, slice) {
+  WrappedComponent = React.memo(WrappedComponent)
+
+  function Container(props) {
+    const state = useAppState()
+    const stateSlice = slice(state, props)
+    return <WrappedComponent state={stateSlice} {...props} />
+  }
+
+  return React.memo(Container)
+}
+
+function Cell({state: cell, row, column}) {
   const dispatch = useAppDispatch()
   const handleClick = React.useCallback(
     () => dispatch({type: 'UPDATE_GRID_CELL', row, column}),
     [column, dispatch, row],
   )
-  return <CellImpl cell={cell} onClick={handleClick} />
-}
-Cell = React.memo(Cell)
 
-function CellImpl({cell, onClick}) {
   return (
     <button
       className="cell"
-      onClick={onClick}
+      onClick={handleClick}
       style={{
         color: cell > 50 ? 'white' : 'black',
         backgroundColor: `rgba(0, 0, 0, ${cell / 100})`,
@@ -123,7 +129,36 @@ function CellImpl({cell, onClick}) {
     </button>
   )
 }
-CellImpl = React.memo(CellImpl)
+
+Cell = withStateSlice(Cell, (state, {row, column}) => state.grid[row][column])
+
+// function Cell({row, column}) {
+//   const state = useAppState()
+//   const cell = state.grid[row][column]
+//   const dispatch = useAppDispatch()
+//   const handleClick = React.useCallback(
+//     () => dispatch({type: 'UPDATE_GRID_CELL', row, column}),
+//     [column, dispatch, row],
+//   )
+//   return <CellImpl cell={cell} onClick={handleClick} />
+// }
+// Cell = React.memo(Cell)
+
+// function CellImpl({cell, onClick}) {
+//   return (
+//     <button
+//       className="cell"
+//       onClick={onClick}
+//       style={{
+//         color: cell > 50 ? 'white' : 'black',
+//         backgroundColor: `rgba(0, 0, 0, ${cell / 100})`,
+//       }}
+//     >
+//       {Math.floor(cell)}
+//     </button>
+//   )
+// }
+// CellImpl = React.memo(CellImpl)
 
 function DogNameInput() {
   const [dogName, setDogName] = useDog()
